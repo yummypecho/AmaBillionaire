@@ -1,8 +1,10 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { StyleSheet, Switch, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { Dropdown } from "react-native-element-dropdown";
+import { loadUserSettings, saveUserSettings } from "../../utils/userSettings";
 
 export default function SettingsScreen() {
+  const [id, setId] = useState(-1);
   const [showName, setShowName] = useState(false);
   const [name, setName] = useState("");
   const [showBillions, setShowBillions] = useState(false);
@@ -29,7 +31,26 @@ export default function SettingsScreen() {
   { label: "THB (฿)", value: "THB" }, // Thailand
   { label: "USD ($)", value: "USD" }, // United States
   { label: "ZAR (R)", value: "ZAR" }  // South Africa
-]
+  ]
+
+  // Load saved settings on mount
+  useEffect(() => {
+    loadUserSettings().then((data) => {
+      if (data) {
+        setId(data.id);
+        setShowName(data.showName);
+        setName(data.name);
+        setShowBillions(data.showBillions);
+        setBillions(data.billions);
+        setCurrency(data.currency);
+      }
+    });
+  }, []);
+
+  // Save settings whenever they change
+  useEffect(() => {
+    saveUserSettings({ id, name, showName,  billions, showBillions, currency });
+  }, [id, name, showName,  billions, showBillions, currency]);
 
 
   return (

@@ -1,31 +1,89 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { FlatList, StyleSheet, Text, TouchableOpacity, View } from "react-native";
-
-// Mock data generator
-const generatePeople = (count: number) => {
-  const currencies = ["USD", "EUR", "JPY", "GBP", "CHF", "AUD", "CNY"];
-  const people = [];
-  for (let i = 1; i <= count; i++) {
-    const showName = Math.random() > 0.3; // 70% show name
-    const name = showName ? `Billionaire ${i}` : "";
-    const billions = (Math.random() * 100).toFixed(2); // 0–100 billions
-    const currency = currencies[Math.floor(Math.random() * currencies.length)];
-    people.push({ id: i, name, billions, currency });
-  }
-  return people;
-};
-
-const allPeople = generatePeople(137); // mock 137 people
+import { generatePeople } from "../../utils/mockBillionaires";
+import { loadUserSettings, saveUserSettings } from "../../utils/userSettings";
 
 export default function PeopleScreen() {
+  const [user, setUser] = useState<any>({
+    id: -1,
+    name: "",
+    showName: false,
+    billions: "0",
+    showBillions: false,
+    currency: "USD",
+  });
+
+  useEffect(() => {
+    loadUserSettings().then((data) => {
+      if (data) setUser(data);
+    });
+  }, []);
+
+  const [people, setPeople] = useState<any[]>([]);
   const [page, setPage] = useState(1);
   const pageSize = 20;
 
-  const startIndex = (page - 1) * pageSize;
-  const endIndex = page * pageSize;
-  const pageData = allPeople.slice(startIndex, endIndex);
+  useEffect(() => {
+    const init = async () => {
+      // all users
+      setPeople(generatePeople());
 
-  const totalPages = Math.ceil(allPeople.length / pageSize);
+      // this user
+      const savedUser = await loadUserSettings();
+      let currentUser = savedUser;
+      if (!savedUser || savedUser.id < 0 || savedUser.id == undefined) {
+        const randId = Math.floor(Math.random() * 67) + 1;
+        currentUser = {
+          id: randId,
+          name: "",
+          showName: false,
+          billions: "0",
+          showBillions: false,
+          currency: "USD",
+        };
+        await saveUserSettings(currentUser);
+      }
+      setUser(currentUser);
+
+      setPeople(prev => {
+        const newPeople = [...prev];
+        newPeople[currentUser.id-1] = {
+          ...newPeople[currentUser.id-1],
+          id: currentUser.id,
+          name: currentUser.name,
+          showName: currentUser.showName,
+          billions: currentUser.billions,
+          showMoney: currentUser.showBillions,
+          currency: currentUser.currency,
+        };
+        return newPeople;
+      })
+    };
+
+    init();
+  }, []);
+
+  useEffect(() => {
+    if (user.id === -1 || people.length === 0) return;
+
+    setPeople(prev => {
+      const newPeople = [...prev];
+      const index = user.id - 1; // zero-based
+      newPeople[index] = {
+        ...newPeople[index],
+        id: user.id,
+        name: user.showName ? user.name : "?",
+        showName: user.showName,
+        billions: user.showBillions ? user.billions : "?",
+        showMoney: user.showBillions,
+        currency: user.showBillions ? user.currency : "?",
+      };
+      return newPeople;
+    });
+  }, [user]); // <-- runs whenever user state changes
+
+  const totalPages = Math.ceil(people.length / pageSize);
+  const pageData = people.slice((page - 1) * pageSize, page * pageSize);
 
   return (
     <View style={styles.container}>
@@ -42,17 +100,23 @@ export default function PeopleScreen() {
       <FlatList
         data={pageData}
         keyExtractor={(item) => item.id.toString()}
-        renderItem={({ item }) => (
-          <View style={styles.row}>
-            <Text style={[styles.cell, styles.idCell]}>{item.id}</Text>
-            <Text style={[styles.cell, styles.nameCell]}>
-              {item.name || "?"}
-            </Text>
-            <Text style={[styles.cell, styles.moneyCell]}>
-              {item.currency} {item.billions}b
-            </Text>
-          </View>
-        )}
+        renderItem={({ item }) => {
+            const isUser = item.id === user.id;
+            console.log(user.id, item.id, isUser);
+            
+            return (
+              <View style={[styles.row, isUser && styles.userRow]}>
+                <Text style={[styles.cell, styles.idCell, isUser && styles.userText]}>{item.id}</Text>
+                <Text style={[styles.cell, styles.nameCell, isUser && styles.userText]}>
+                  {item.showName ? item.name : "?"}
+                </Text>
+                <Text style={[styles.cell, styles.moneyCell, isUser && styles.userText]}>
+                  {item.showMoney ? `${item.currency} ${item.billions}b` : "?"}
+                </Text>
+              </View>
+            )
+          }
+        }
       />
 
       {/* Pagination */}
@@ -112,4 +176,14 @@ const styles = StyleSheet.create({
   disabledButton: { backgroundColor: "#555" },
   pageButtonText: { color: "#fff", fontWeight: "600" },
   pageInfo: { color: "#aaa", fontSize: 16 },
+  
+  userRow: {
+    backgroundColor: "#4A8", // blue highlight
+    borderRadius: 8,
+  },
+  userText: {
+    fontWeight: "700",
+    color: "#fff",
+  },
+
 });
