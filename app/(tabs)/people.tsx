@@ -34,7 +34,7 @@ export default function PeopleScreen() {
 
     if (user.id < 0 || user.id === undefined) {
       const newId = Math.floor(Math.random() * 67) + 1;
-      user.id = newId;
+      setUser({...user, id: newId });
     }
     console.log("User id is " + user.id);
 

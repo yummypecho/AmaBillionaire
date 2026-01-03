@@ -39,8 +39,7 @@ export default function SettingsScreen() {
 
   // Update context whenever a setting changes
   useEffect(() => {
-    if (loading) 
-      setUser({
+    setUser({
         ...user,
         showName,
         name,

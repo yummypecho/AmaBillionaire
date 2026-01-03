@@ -49,7 +49,7 @@ export const generatePeople = () => {
     let showMoney = false;
     let currency = currencies[Math.floor(Math.random() * currencies.length)];
 
-    // Special billionaire at ID 69
+    // Special billionaire at user id
     if (i === count) {
       people.push({
         id,
@@ -64,15 +64,15 @@ export const generatePeople = () => {
 
     // Randomly decide visibility
     const visibilityRand = Math.random();
-    if (visibilityRand < 0.25) {
+    if (visibilityRand < 0.2) {
       // Show name only
       showName = true;
       showMoney = false;
-    } else if (visibilityRand < 0.5) {
+    } else if (visibilityRand < 0.55) {
       // Show money only
       showName = false;
       showMoney = true;
-    } else if (visibilityRand < 0.8) {
+    } else if (visibilityRand < 0.95) {
       // Show both
       showName = true;
       showMoney = true;

@@ -2,12 +2,7 @@ import { Link } from "expo-router";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 export default function Index() {
-  const userCount_temp = 0;
-
-  let countText =
-    userCount_temp > 1
-      ? `So what? There's like ${userCount_temp} of you.`
-      : "So what? There's like... 1 of you. (WAIT WTF UR THE ONLY ONE!?)";
+  let countText = `So what? Here's more like you.`;
 
   return (
     <View style={styles.container}>
@@ -35,7 +30,7 @@ const styles = StyleSheet.create({
   headerText: {
     fontSize: 28,
     color: "#fff",           // white text
-    marginBottom: 40,
+    marginBottom: 30,
     fontWeight: "600",
   },
 
@@ -50,13 +45,13 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 4,
     elevation: 4, // Android shadow
+    marginBottom: 50,
   },
 
 
   buttonLink: {
     fontSize: 18,
     color: "#fff",
-    textDecorationLine: "underline",
     fontWeight: "600",
   },
 });

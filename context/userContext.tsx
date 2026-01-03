@@ -65,7 +65,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
 
   // Save user to AsyncStorage whenever it changes
   useEffect(() => {
-    if (user.id === -1) return; // don't save default placeholder
+    if (loading) return; // don't save while still loading initial data
     const saveUser = async () => {
       try {
         await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(user));
