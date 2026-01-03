@@ -49,7 +49,7 @@ export default function PeopleScreen() {
               {item.name || "?"}
             </Text>
             <Text style={[styles.cell, styles.moneyCell]}>
-              {item.currency} {item.billions}
+              {item.currency} {item.billions}b
             </Text>
           </View>
         )}
