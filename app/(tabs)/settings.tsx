@@ -1,57 +1,54 @@
+import { LoadingScreen } from "@/components/loadingScreen";
+import { useUser } from "@/context/userContext";
 import { useEffect, useState } from "react";
 import { StyleSheet, Switch, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { Dropdown } from "react-native-element-dropdown";
-import { loadUserSettings, saveUserSettings } from "../../utils/userSettings";
 
 export default function SettingsScreen() {
-  const [id, setId] = useState(-1);
-  const [showName, setShowName] = useState(false);
-  const [name, setName] = useState("");
-  const [showBillions, setShowBillions] = useState(false);
-  const [billions, setBillions] = useState("");
-  const [currency, setCurrency] = useState("USD");
+  const { user, setUser, loading } = useUser();
+
+  if (loading) return <LoadingScreen />;
+
+  const [showName, setShowName] = useState(user.showName);
+  const [name, setName] = useState(user.name);
+  const [showBillions, setShowBillions] = useState(user.showBillions);
+  const [billions, setBillions] = useState(user.billions);
+  const [currency, setCurrency] = useState(user.currency);
 
   const currencyOptions = [
-  { label: "AUD (A$)", value: "AUD" }, // Australia
-  { label: "CAD (C$)", value: "CAD" }, // Canada
-  { label: "CHF", value: "CHF" }, // Switzerland
-  { label: "CNY (¥)", value: "CNY" }, // China
-  { label: "DKK (kr)", value: "DKK" }, // Denmark
-  { label: "EUR (€)", value: "EUR" }, // Eurozone
-  { label: "GBP (£)", value: "GBP" }, // United Kingdom
-  { label: "HKD", value: "HKD" }, // Hong Kong
-  { label: "INR (₹)", value: "INR" }, // India
-  { label: "JPY (¥)", value: "JPY" }, // Japan
-  { label: "KRW (₩)", value: "KRW" }, // South Korea
-  { label: "NOK (kr)", value: "NOK" }, // Norway
-  { label: "RUB (₽)", value: "RUB" }, // Russia
-  { label: "SAR (﷼)", value: "SAR" }, // Saudi Arabia
-  { label: "SEK (kr)", value: "SEK" }, // Sweden
-  { label: "SGD (S$)", value: "SGD" }, // Singapore
-  { label: "THB (฿)", value: "THB" }, // Thailand
-  { label: "USD ($)", value: "USD" }, // United States
-  { label: "ZAR (R)", value: "ZAR" }  // South Africa
-  ]
+    { label: "AUD (A$)", value: "AUD" },
+    { label: "CAD (C$)", value: "CAD" },
+    { label: "CHF", value: "CHF" },
+    { label: "CNY (¥)", value: "CNY" },
+    { label: "DKK (kr)", value: "DKK" },
+    { label: "EUR (€)", value: "EUR" },
+    { label: "GBP (£)", value: "GBP" },
+    { label: "HKD", value: "HKD" },
+    { label: "INR (₹)", value: "INR" },
+    { label: "JPY (¥)", value: "JPY" },
+    { label: "KRW (₩)", value: "KRW" },
+    { label: "NOK (kr)", value: "NOK" },
+    { label: "RUB (₽)", value: "RUB" },
+    { label: "SAR (﷼)", value: "SAR" },
+    { label: "SEK (kr)", value: "SEK" },
+    { label: "SGD (S$)", value: "SGD" },
+    { label: "THB (฿)", value: "THB" },
+    { label: "USD ($)", value: "USD" },
+    { label: "ZAR (R)", value: "ZAR" }
+  ];
 
-  // Load saved settings on mount
+  // Update context whenever a setting changes
   useEffect(() => {
-    loadUserSettings().then((data) => {
-      if (data) {
-        setId(data.id);
-        setShowName(data.showName);
-        setName(data.name);
-        setShowBillions(data.showBillions);
-        setBillions(data.billions);
-        setCurrency(data.currency);
-      }
-    });
-  }, []);
-
-  // Save settings whenever they change
-  useEffect(() => {
-    saveUserSettings({ id, name, showName,  billions, showBillions, currency });
-  }, [id, name, showName,  billions, showBillions, currency]);
-
+    if (loading) 
+      setUser({
+        ...user,
+        showName,
+        name,
+        showBillions,
+        billions,
+        currency,
+      });
+  }, [showName, name, showBillions, billions, currency]);
 
   return (
     <View style={styles.container}>
@@ -98,25 +95,19 @@ export default function SettingsScreen() {
               onChangeText={(text) => {
                 // Sanitize numeric input
                 let sanitized = text.replace(/[^0-9.]/g, "");
-
-                // Only keep the first dot
                 const firstDotIndex = sanitized.indexOf(".");
                 if (firstDotIndex !== -1) {
-                  // Split integer and decimal
                   let integerPart = sanitized.slice(0, firstDotIndex).replace(/^0+(?=\d)/, "");
-                  const decimalPart = sanitized.slice(firstDotIndex + 1).replace(/\./g, ""); // remove any extra dots
+                  const decimalPart = sanitized.slice(firstDotIndex + 1).replace(/\./g, "");
                   sanitized = decimalPart ? `${integerPart}.${decimalPart}` : integerPart + ".";
                 } else {
-                  // No dot, just remove leading zeros
                   sanitized = sanitized.replace(/^0+(?=\d)/, "");
                 }
-
                 setBillions(sanitized);
               }}
               editable={showBillions}
               keyboardType="numeric"
             />
-            {/* Pinned B */}
             <Text style={styles.billionSuffix}>b</Text>
           </View>
 
@@ -126,10 +117,7 @@ export default function SettingsScreen() {
             valueField="value"
             value={currency}
             onChange={item => setCurrency(item.value)}
-            style={[
-              styles.dropdown,
-              !showBillions && styles.disabledPicker
-            ]}
+            style={[styles.dropdown, !showBillions && styles.disabledPicker]}
             placeholder="CUR"
             placeholderStyle={{ color: "#777" }}
             selectedTextStyle={styles.dropdownText}
